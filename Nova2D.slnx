@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Nova2D/Nova2D.vcxproj" Id="75bc11ad-b6b6-42d5-9f0f-8fc5e05623cd" />
+</Solution>

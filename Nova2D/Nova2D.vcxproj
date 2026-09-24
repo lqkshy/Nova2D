@@ -597,6 +597,7 @@
     <ClInclude Include="libs\sol\version.hpp" />
     <ClInclude Include="libs\sol\wrapper.hpp" />
     <ClInclude Include="src\Game.h" />
+    <ClInclude Include="src\Logger.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libs\glm\detail\func_common.inl" />
@@ -752,6 +753,7 @@
     <ClCompile Include="libs\imgui\imgui_tables.cpp" />
     <ClCompile Include="libs\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\Logger.cpp" />
     <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>

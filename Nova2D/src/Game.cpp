@@ -1,38 +1,50 @@
 #include "Game.h"
+#include "Logger.h"
 #include <iostream>
+#include <glm/glm.hpp>
+#include <SDL3/SDL_image.h>
 #include <SDL3/SDL.h>
 
 Game::Game() {
     isRunning = false;
-    std::cout << "Game constructor called!" << std::endl;
+    Logger::Log("Game constuctor called!");
 }
 
 Game::~Game() {
-    std::cout << "Game destructor called!" << std::endl;
+    Logger::Log("Game destructor called!");
 }
 
 void Game::Initialize() {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
-        std::cerr << "Error Initializing SDL: " << SDL_GetError() << std::endl;
+        Logger::Err("Error Initializing SDL: ");
         return;
     }
 
-    window = SDL_CreateWindow("Nova2D", 800, 600, SDL_WINDOW_BORDERLESS);
+    SDL_DisplayID displayID = SDL_GetPrimaryDisplay();
+    const SDL_DisplayMode* displayMode = SDL_GetCurrentDisplayMode(displayID);
+    if (displayMode) {
+        windowWidth = 800; //displayMode->w;
+        windowHeight = 600;//displayMode->h;
+    }
+
+    window = SDL_CreateWindow("Nova2D", windowWidth, windowHeight, SDL_WINDOW_BORDERLESS);
     if (!window) {
-        std::cerr << "Error creating SDL window: " << SDL_GetError() << std::endl;
+        Logger::Err("Error creating SDL window: ");
         return;
     }
 
     renderer = SDL_CreateRenderer(window, NULL);
     if (!renderer) {
-        std::cerr << "Error creating SDL renderer: " << SDL_GetError() << std::endl;
+        Logger::Err("Error creating SDL renderer: ");
         return;
     }
 
+    SDL_SetWindowFullscreen(window, true);
     isRunning = true;
 }
 
 void Game::Run() {
+    Setup();
     while (isRunning) {
         ProcessInput();
         Update();
@@ -56,19 +68,52 @@ void Game::ProcessInput() {
     }
 }
 
+glm::vec2 playerPosition;
+glm::vec2 playerVelocity;
+
+void Game::Setup() {
+    playerPosition = glm::vec2(10.0, 20.0);
+    playerVelocity = glm::vec2(10.0, 5.0);
+}
+
 void Game::Update() {
-    // TODO: Update game objects...
+    // iff we are too fast, waste some time until we reach the MILLISECSPERFRAME
+    Uint64 timeToWait = MILLISECS_PER_FRAME - (SDL_GetTicks() - millisecsPreviousFrame);
+    if (timeToWait > 0 && timeToWait <= MILLISECS_PER_FRAME) {
+        SDL_Delay(timeToWait);
+    }
+
+    // The diffrence in ticks since the last frame, converted to seconds
+    float deltaTime = (SDL_GetTicks() - millisecsPreviousFrame) / 1000.0f;
+
+    // Store the current frame time
+    millisecsPreviousFrame = SDL_GetTicks();
+
+    playerPosition.x += playerVelocity.x * deltaTime;
+    playerPosition.y += playerVelocity.y * deltaTime;
 }
 
 void Game::Render() {
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 21, 21, 0, 255);
     SDL_RenderClear(renderer);
 
-    // TODO: Render game objects...
+    // Load a PNG texture
+    SDL_Surface* surface = IMG_Load("./assets/images/tank-tiger-right.png");
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_DestroySurface(surface);
+
+    // What is the destination rectangle that we want to place our texture
+    SDL_FRect dstRect = {
+        playerPosition.x,
+        playerPosition.y,
+        32, 32 
+    };
+    SDL_RenderTexture(renderer, texture, NULL, &dstRect);
+    SDL_DestroyTexture(texture);
 
     SDL_RenderPresent(renderer);
 }
-
+ 
 void Game::Destroy() {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

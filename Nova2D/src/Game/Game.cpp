@@ -77,16 +77,12 @@ void Game::Setup() {
 }
 
 void Game::Update() {
-    // iff we are too fast, waste some time until we reach the MILLISECSPERFRAME
     Uint64 timeToWait = MILLISECS_PER_FRAME - (SDL_GetTicks() - millisecsPreviousFrame);
     if (timeToWait > 0 && timeToWait <= MILLISECS_PER_FRAME) {
-        SDL_Delay(timeToWait);
+        SDL_Delay(static_cast<Uint32>(timeToWait));  
     }
 
-    // The diffrence in ticks since the last frame, converted to seconds
     float deltaTime = (SDL_GetTicks() - millisecsPreviousFrame) / 1000.0f;
-
-    // Store the current frame time
     millisecsPreviousFrame = SDL_GetTicks();
 
     playerPosition.x += playerVelocity.x * deltaTime;

@@ -119,7 +119,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\laksh\Desktop\Nova2D\Nova2D\src\Logger;C:\Users\laksh\Desktop\Nova2D\Nova2D\src\Game;C:\Users\laksh\Desktop\Nova2D\Nova2D\src;C:\Users\laksh\Desktop\Nova2D\Nova2D\libs;C:\Users\laksh\Desktop\Nova2D\Nova2D\libs\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\laksh\Desktop\Nova2D\Nova2D\src\Components;C:\Users\laksh\Desktop\Nova2D\Nova2D\src\Systems;C:\Users\laksh\Desktop\Nova2D\Nova2D\src\ECS;C:\Users\laksh\Desktop\Nova2D\Nova2D\src\Logger;C:\Users\laksh\Desktop\Nova2D\Nova2D\src\Game;C:\Users\laksh\Desktop\Nova2D\Nova2D\src;C:\Users\laksh\Desktop\Nova2D\Nova2D\libs;C:\Users\laksh\Desktop\Nova2D\Nova2D\libs\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,7 +139,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\laksh\Desktop\Nova2D\Nova2D\src\Logger;C:\Users\laksh\Desktop\Nova2D\Nova2D\src\Game;C:\Users\laksh\Desktop\Nova2D\Nova2D\src;C:\Users\laksh\Desktop\Nova2D\Nova2D\libs;C:\Users\laksh\Desktop\Nova2D\Nova2D\libs\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\laksh\Desktop\Nova2D\Nova2D\src\Components;C:\Users\laksh\Desktop\Nova2D\Nova2D\src\Systems;C:\Users\laksh\Desktop\Nova2D\Nova2D\src\ECS;C:\Users\laksh\Desktop\Nova2D\Nova2D\src\Logger;C:\Users\laksh\Desktop\Nova2D\Nova2D\src\Game;C:\Users\laksh\Desktop\Nova2D\Nova2D\src;C:\Users\laksh\Desktop\Nova2D\Nova2D\libs;C:\Users\laksh\Desktop\Nova2D\Nova2D\libs\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -596,8 +596,11 @@
     <ClInclude Include="libs\sol\variadic_results.hpp" />
     <ClInclude Include="libs\sol\version.hpp" />
     <ClInclude Include="libs\sol\wrapper.hpp" />
+    <ClInclude Include="src\Components\TransformComponent.h" />
+    <ClInclude Include="src\ECS\ECS.h" />
     <ClInclude Include="src\Game\Game.h" />
     <ClInclude Include="src\Logger\Logger.h" />
+    <ClInclude Include="src\Systems\MovementSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libs\glm\detail\func_common.inl" />
@@ -752,6 +755,7 @@
     <ClCompile Include="libs\imgui\imgui_impl_sdlrenderer3.cpp" />
     <ClCompile Include="libs\imgui\imgui_tables.cpp" />
     <ClCompile Include="libs\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\ECS\ECS.cpp" />
     <ClCompile Include="src\Game\Game.cpp" />
     <ClCompile Include="src\Logger\Logger.cpp" />
     <ClCompile Include="src\Main.cpp" />

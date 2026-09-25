@@ -30,12 +30,20 @@ class Component : public IComponent {
 };
 
 class Entity {
-	private:
-		int id;
+private:
+	int id;
 
-	public:
-		Entity(int id) : id(id) {};
-		int GetId() const;
+public:
+	Entity(int id) : id(id) {};
+	Entity(const Entity& entity) = default;
+	int GetId() const;
+
+	Entity& operator =(const Entity& other) = default;
+	bool operator ==(const Entity& other) const { return id == other.id; }
+	bool operator !=(const Entity& other) const { return id != other.id; }
+	bool operator >(const Entity& other) const { return id > other.id; }
+	bool operator <(const Entity& other) const { return id < other.id; }
+
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////

@@ -11,6 +11,7 @@
 #include "../Components/HealthComponent.h"
 #include "../Components/TextLabelComponent.h"
 #include "../Components/ScriptComponent.h"
+#include "../Components/PatrolComponent.h"
 #include <fstream>
 #include <string>
 #include <sol/sol.hpp>
@@ -23,18 +24,29 @@ LevelLoader::~LevelLoader() {
     Logger::Log("LevelLoader destructor called!");    
 }
 
-void LevelLoader::LoadLevel(sol::state& lua, const std::unique_ptr<Registry>& registry, const std::unique_ptr<AssetStore>& assetStore, SDL_Renderer* renderer, int levelNumber) {
+bool LevelLoader::LoadLevel(sol::state& lua, const std::unique_ptr<Registry>& registry, const std::unique_ptr<AssetStore>& assetStore, SDL_Renderer* renderer, int levelNumber) {
     // This checks the syntax of our script, but it does not execute the script
     sol::load_result script = lua.load_file("./assets/scripts/Level" + std::to_string(levelNumber) + ".lua");
     if (!script.valid()) {
         sol::error err = script;
         std::string errorMessage = err.what();
         Logger::Err("Error loading the lua script: " + errorMessage);
-        return;
+        return false;
     }
 
     // Executes the script using the Sol state
-    lua.script_file("./assets/scripts/Level" + std::to_string(levelNumber) + ".lua");
+    sol::protected_function_result result = script();
+    if (!result.valid()) {
+        sol::error err = result;
+        Logger::Err("Error running the lua script: " + std::string(err.what()));
+        return false;
+    }
+
+    sol::optional<sol::table> hasLevel = lua["Level"];
+    if (hasLevel == sol::nullopt) {
+        Logger::Err("The lua script does not define a global 'Level' table.");
+        return false;
+    }
 
     // Read the big table for the current level
     sol::table level = lua["Level"];
@@ -78,7 +90,7 @@ void LevelLoader::LoadLevel(sol::state& lua, const std::unique_ptr<Registry>& re
     std::ifstream mapFile(mapFilePath);
     if (!mapFile.is_open()) {
         Logger::Err("Could not open tilemap file: " + mapFilePath);
-        return;
+        return false;
     }
 
     // Reads the next digit from the file, skipping commas, \r and \n.
@@ -100,7 +112,7 @@ void LevelLoader::LoadLevel(sol::state& lua, const std::unique_ptr<Registry>& re
             if (row < 0 || col < 0) {
                 Logger::Err("Tilemap ended early. Check num_rows and num_cols in the Lua file.");
                 mapFile.close();
-                return;
+                return false;
             }
 
             int srcRectY = row * tileSize;
@@ -265,6 +277,17 @@ void LevelLoader::LoadLevel(sol::state& lua, const std::unique_ptr<Registry>& re
                 );
             }
 
+            // Patrol (enemy walks back and forth inside a rectangle)
+            sol::optional<sol::table> patrol = entity["components"]["patrol"];
+            if (patrol != sol::nullopt) {
+                newEntity.AddComponent<PatrolComponent>(
+                    static_cast<float>(entity["components"]["patrol"]["min_x"].get_or(-100000.0)),
+                    static_cast<float>(entity["components"]["patrol"]["max_x"].get_or(100000.0)),
+                    static_cast<float>(entity["components"]["patrol"]["min_y"].get_or(-100000.0)),
+                    static_cast<float>(entity["components"]["patrol"]["max_y"].get_or(100000.0))
+                );
+            }
+
             // Script
             sol::optional<sol::table> script = entity["components"]["on_update_script"];
             if (script != sol::nullopt) {
@@ -274,4 +297,6 @@ void LevelLoader::LoadLevel(sol::state& lua, const std::unique_ptr<Registry>& re
         }
         i++;
     }
+
+    return true;
 }

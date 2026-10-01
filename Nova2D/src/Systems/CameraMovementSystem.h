@@ -1,10 +1,12 @@
 #ifndef CAMERAMOVEMENTSYSTEM_H
 #define CAMERAMOVEMENTSYSTEM_H
 
+#include "../Game/Game.h"
 #include "../ECS/ECS.h"
 #include "../Components/CameraFollowComponent.h"
 #include "../Components/TransformComponent.h"
 #include <SDL3/SDL.h>
+#include <algorithm>
 
 class CameraMovementSystem: public System {
     public:
@@ -15,21 +17,16 @@ class CameraMovementSystem: public System {
 
         void Update(SDL_Rect& camera) {
             for (auto entity: GetSystemEntities()) {
-                auto transform = entity.GetComponent<TransformComponent>();
+                const auto& transform = entity.GetComponent<TransformComponent>();
 
-                if (transform.position.x + (camera.w / 2) < Game::mapWidth) {
-                    camera.x = transform.position.x - (Game::windowWidth / 2);
-                }
+                // Center the camera on the entity, then keep it inside the map
+                camera.x = static_cast<int>(transform.position.x) + 16 - camera.w / 2;
+                camera.y = static_cast<int>(transform.position.y) + 16 - camera.h / 2;
 
-                if (transform.position.y + (camera.h / 2) < Game::mapHeight) {
-                    camera.y = transform.position.y - (Game::windowHeight / 2);
-                }
-
-                // Keep camera rectangle view inside the screen limits
-                camera.x = camera.x < 0 ? 0 : camera.x;
-                camera.y = camera.y < 0 ? 0 : camera.y;
-                camera.x = camera.x > camera.w ? camera.w : camera.x;
-                camera.y = camera.y > camera.h ? camera.h : camera.y;
+                const int maxX = std::max(0, Game::mapWidth - camera.w);
+                const int maxY = std::max(0, Game::mapHeight - camera.h);
+                camera.x = std::clamp(camera.x, 0, maxX);
+                camera.y = std::clamp(camera.y, 0, maxY);
             }
         }
 };

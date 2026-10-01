@@ -105,7 +105,8 @@ bool Registry::EntityHasTag(Entity entity, const std::string& tag) const {
 	if (tagPerEntity.find(entity.GetId()) == tagPerEntity.end()) {
 		return false;
 	}
-	return entityPerTag.find(tag)->second == entity;
+	auto taggedEntity = entityPerTag.find(tag);
+	return taggedEntity != entityPerTag.end() && taggedEntity->second == entity;
 }
 
 Entity Registry::GetEntityByTag(const std::string& tag) const {
@@ -136,8 +137,12 @@ bool Registry::EntityBelongsToGroup(Entity entity, const std::string& group) con
 }
 
 std::vector<Entity> Registry::GetEntitiesByGroup(const std::string& group) const {
-    auto& setOfEntities = entitiesPerGroup.at(group);
-    return std::vector<Entity>(setOfEntities.begin(), setOfEntities.end());
+    // Returns an empty list (instead of throwing) when nobody belongs to the group yet
+    auto groupEntities = entitiesPerGroup.find(group);
+    if (groupEntities == entitiesPerGroup.end()) {
+        return std::vector<Entity>();
+    }
+    return std::vector<Entity>(groupEntities->second.begin(), groupEntities->second.end());
 }
 
 void Registry::RemoveEntityGroup(Entity entity) {

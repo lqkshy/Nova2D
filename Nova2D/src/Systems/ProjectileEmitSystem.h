@@ -2,98 +2,81 @@
 #define PROJECTILEEMITSYSTEM_H
 
 #include "../ECS/ECS.h"
-#include "../EventBus/EventBus.h"
-#include "../Events/KeyPressedEvent.h"
 #include "../Components/TransformComponent.h"
 #include "../Components/RigidBodyComponent.h"
 #include "../Components/SpriteComponent.h"
 #include "../Components/BoxColliderComponent.h"
 #include "../Components/ProjectileComponent.h"
 #include "../Components/ProjectileEmitterComponent.h"
-#include "../Components/CameraFollowComponent.h"
+#include "../Components/KeyboardControlledComponent.h"
 #include <SDL3/SDL.h>
+#include <glm/glm.hpp>
+#include <algorithm>
+#include <cmath>
+
+constexpr int PLAYER_FIRE_COOLDOWN_MS = 250;
 
 class ProjectileEmitSystem: public System {
+    private:
+        static void SpawnProjectile(std::unique_ptr<Registry>& registry, const glm::vec2& position, const glm::vec2& velocity, const ProjectileEmitterComponent& emitter) {
+            Entity projectile = registry->CreateEntity();
+            projectile.Group("projectiles");
+            projectile.AddComponent<TransformComponent>(position - glm::vec2(2.0f, 2.0f), glm::vec2(1.0, 1.0), 0.0);
+            projectile.AddComponent<RigidBodyComponent>(velocity);
+            projectile.AddComponent<SpriteComponent>("bullet-texture", 4, 4, 4);
+            projectile.AddComponent<BoxColliderComponent>(4, 4);
+            projectile.AddComponent<ProjectileComponent>(emitter.isFriendly, emitter.hitPercentDamage, emitter.projectileDuration);
+        }
+
     public:
         ProjectileEmitSystem() {
             RequireComponent<ProjectileEmitterComponent>();
             RequireComponent<TransformComponent>();
         }
 
-        void SubscribeToEvents(std::unique_ptr<EventBus>& eventBus) {
-            eventBus->SubscribeToEvent<KeyPressedEvent>(this, &ProjectileEmitSystem::OnKeyPressed);
-        }
-
-        void OnKeyPressed(KeyPressedEvent& event) {
-            if (event.symbol == SDLK_SPACE) {
-                for (auto entity: GetSystemEntities()) {
-                    if (entity.HasTag("player")) {
-                        const auto& projectileEmitter = entity.GetComponent<ProjectileEmitterComponent>();
-                        const auto& transform = entity.GetComponent<TransformComponent>();
-                        const auto& rigidbody = entity.GetComponent<RigidBodyComponent>();
-
-                        // If parent entity has sprite, start the projectile position in the middle of the entity
-                        glm::vec2 projectilePosition = transform.position;
-                        if (entity.HasComponent<SpriteComponent>()) {
-                            const auto& sprite = entity.GetComponent<SpriteComponent>();
-                            projectilePosition.x += (transform.scale.x * sprite.width / 2);
-                            projectilePosition.y += (transform.scale.y * sprite.height / 2);
-                        }
-
-                        // If parent entity direction is controlled by the keyboard keys, modify the direction of the projectile accordingly
-                        glm::vec2 projectileVelocity = projectileEmitter.projectileVelocity;
-                        int directionX = 0;
-                        int directionY = 0;
-                        if (rigidbody.velocity.x > 0) directionX = +1;
-                        if (rigidbody.velocity.x < 0) directionX = -1;
-                        if (rigidbody.velocity.y > 0) directionY = +1;
-                        if (rigidbody.velocity.y < 0) directionY = -1;
-                        projectileVelocity.x = projectileEmitter.projectileVelocity.x * directionX;
-                        projectileVelocity.y = projectileEmitter.projectileVelocity.y * directionY;
-                    
-                        // Create new projectile entity and add it to the world
-                        Entity projectile = entity.registry->CreateEntity();
-                        projectile.Group("projectiles");
-                        projectile.AddComponent<TransformComponent>(projectilePosition, glm::vec2(1.0, 1.0), 0.0);
-                        projectile.AddComponent<RigidBodyComponent>(projectileVelocity);
-                        projectile.AddComponent<SpriteComponent>("bullet-texture", 4, 4, 4);
-                        projectile.AddComponent<BoxColliderComponent>(4, 4);
-                        projectile.AddComponent<ProjectileComponent>(projectileEmitter.isFriendly, projectileEmitter.hitPercentDamage, projectileEmitter.projectileDuration);
-                    }
-                }
-            }
-        }
-        
         void Update(std::unique_ptr<Registry>& registry) {
-            for (auto entity: GetSystemEntities()) {
-                auto& projectileEmitter = entity.GetComponent<ProjectileEmitterComponent>();
-                const auto& transform = entity.GetComponent<TransformComponent>();
+            const bool* keys = SDL_GetKeyboardState(nullptr);
+            const bool firePressed = keys[SDL_SCANCODE_SPACE];
+            const int now = static_cast<int>(SDL_GetTicks());
 
-                // If emission frequency is zero, bypass re-emission logic
-                if (projectileEmitter.repeatFrequency == 0) {
+            for (auto entity: GetSystemEntities()) {
+                auto& emitter = entity.GetComponent<ProjectileEmitterComponent>();
+
+                // Start the bullet in the middle of the entity (read BEFORE creating the projectile,
+                // because creating it can move the component pools in memory)
+                const auto& transform = entity.GetComponent<TransformComponent>();
+                glm::vec2 origin = transform.position;
+                if (entity.HasComponent<SpriteComponent>()) {
+                    const auto& sprite = entity.GetComponent<SpriteComponent>();
+                    origin.x += (transform.scale.x * sprite.width / 2);
+                    origin.y += (transform.scale.y * sprite.height / 2);
+                }
+
+                // The player fires while SPACE is held, in the direction it is facing
+                if (entity.HasTag("player")) {
+                    if (!firePressed || now - emitter.lastEmissionTime < PLAYER_FIRE_COOLDOWN_MS) {
+                        continue;
+                    }
+                    glm::vec2 direction(0.0f, -1.0f);
+                    if (entity.HasComponent<KeyboardControlledComponent>()) {
+                        direction = entity.GetComponent<KeyboardControlledComponent>().facing;
+                    }
+                    float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+                    if (length > 0.0f) direction /= length;
+                    float speed = std::max(std::abs(emitter.projectileVelocity.x), std::abs(emitter.projectileVelocity.y));
+
+                    SpawnProjectile(registry, origin, direction * speed, emitter);
+                    emitter.lastEmissionTime = now;
                     continue;
                 }
 
-                // Check if its time to re-emit a new projectile
-                if (SDL_GetTicks() - projectileEmitter.lastEmissionTime > projectileEmitter.repeatFrequency) {
-                    glm::vec2 projectilePosition = transform.position;
-                    if (entity.HasComponent<SpriteComponent>()) {
-                        const auto& sprite = entity.GetComponent<SpriteComponent>();
-                        projectilePosition.x += (transform.scale.x * sprite.width / 2);
-                        projectilePosition.y += (transform.scale.y * sprite.height / 2);
-                    }
-
-                    // Add a new projectile entity to the registry
-                    Entity projectile = registry->CreateEntity();
-                    projectile.Group("projectiles");
-                    projectile.AddComponent<TransformComponent>(projectilePosition, glm::vec2(1.0, 1.0), 0.0);
-                    projectile.AddComponent<RigidBodyComponent>(projectileEmitter.projectileVelocity);
-                    projectile.AddComponent<SpriteComponent>("bullet-texture", 4, 4, 4);
-                    projectile.AddComponent<BoxColliderComponent>(4, 4);
-                    projectile.AddComponent<ProjectileComponent>(projectileEmitter.isFriendly, projectileEmitter.hitPercentDamage, projectileEmitter.projectileDuration);
-                
-                    // Update the projectile emitter component last emission to the current milliseconds
-                    projectileEmitter.lastEmissionTime = SDL_GetTicks();
+                // Everybody else (enemies) fires automatically every repeatFrequency milliseconds
+                if (emitter.repeatFrequency == 0) {
+                    continue;
+                }
+                if (now - emitter.lastEmissionTime > emitter.repeatFrequency) {
+                    SpawnProjectile(registry, origin, emitter.projectileVelocity, emitter);
+                    emitter.lastEmissionTime = now;
                 }
             }
         }

@@ -1,4 +1,4 @@
--- Level2.lua  -  Island Hopping
+-- Level1.lua  -  Jungle Landing
 -- Lists are 0-indexed on purpose: LevelLoader.cpp starts reading at index 0.
 -- Goal of every level: destroy ALL enemies.
 --
@@ -8,7 +8,7 @@
 --   repeat_frequency: seconds between shots (whole numbers)
 
 Level = {
-    name = "Island Hopping",
+    name = "Jungle Landing",
 
     assets = {
         [0] = { type = "texture", id = "jungle-tilemap",  file = "./assets/tilemaps/jungle.png" },
@@ -49,14 +49,14 @@ Level = {
                     projectile_velocity = { x = 320, y = 320 },
                     repeat_frequency = 0,
                     projectile_duration = 2,
-                    hit_percentage_damage = 25,
+                    hit_percentage_damage = 34,
                     friendly = true
                 },
                 keyboard_controller = {
-                    up_velocity    = { x = 0,    y = -165 },
-                    right_velocity = { x = 165,  y = 0 },
-                    down_velocity  = { x = 0,    y = 165 },
-                    left_velocity  = { x = -165, y = 0 }
+                    up_velocity    = { x = 0,    y = -160 },
+                    right_velocity = { x = 160,  y = 0 },
+                    down_velocity  = { x = 0,    y = 160 },
+                    left_velocity  = { x = -160, y = 0 }
                 },
                 camera_follow = {}
             }
@@ -70,130 +70,78 @@ Level = {
             }
         },
 
+        -- Tank guarding the north coast
         {
             group = "enemies",
             components = {
-                transform = { position = { x = 820, y = 122 }, scale = { x = 1.0, y = 1.0 }, rotation = 0.0 },
+                transform = { position = { x = 900, y = 122 }, scale = { x = 1.0, y = 1.0 }, rotation = 0.0 },
                 rigidbody = { velocity = { x = 0, y = 0.0 } },
                 sprite = { texture_asset_id = "tank-texture", width = 32, height = 32, z_index = 2 },
                 boxcollider = { width = 32, height = 32 },
                 health = { health_percentage = 100 },
                 projectile_emitter = {
-                    projectile_velocity = { x = 140, y = 0 },
-                    repeat_frequency = 2,
+                    projectile_velocity = { x = 110, y = 0 },
+                    repeat_frequency = 3,
                     projectile_duration = 4,
-                    hit_percentage_damage = 10,
+                    hit_percentage_damage = 8,
                     friendly = false
                 }
             }
         },
 
+        -- Truck patrolling the north coast
         {
             group = "enemies",
             components = {
                 transform = { position = { x = 900, y = 170 }, scale = { x = 1.0, y = 1.0 }, rotation = 0.0 },
-                rigidbody = { velocity = { x = 70, y = 0.0 } },
+                rigidbody = { velocity = { x = 60, y = 0.0 } },
                 sprite = { texture_asset_id = "truck-texture", width = 32, height = 32, z_index = 2 },
                 boxcollider = { width = 32, height = 32 },
                 health = { health_percentage = 100 },
                 projectile_emitter = {
-                    projectile_velocity = { x = 140, y = 0 },
-                    repeat_frequency = 2,
+                    projectile_velocity = { x = 110, y = 0 },
+                    repeat_frequency = 3,
                     projectile_duration = 4,
-                    hit_percentage_damage = 10,
+                    hit_percentage_damage = 8,
                     friendly = false
                 },
-                patrol = { min_x = 800, max_x = 1060, min_y = 170, max_y = 170 }
+                patrol = { min_x = 770, max_x = 1060, min_y = 170, max_y = 170 }
             }
         },
 
+        -- Tank in the north-east base
         {
             group = "enemies",
             components = {
-                transform = { position = { x = 1390, y = 300 }, scale = { x = 1.0, y = 1.0 }, rotation = 0.0 },
+                transform = { position = { x = 1340, y = 220 }, scale = { x = 1.0, y = 1.0 }, rotation = 0.0 },
                 rigidbody = { velocity = { x = 0, y = 0.0 } },
                 sprite = { texture_asset_id = "tank-texture", width = 32, height = 32, z_index = 2 },
                 boxcollider = { width = 32, height = 32 },
                 health = { health_percentage = 100 },
                 projectile_emitter = {
-                    projectile_velocity = { x = 140, y = 0 },
-                    repeat_frequency = 2,
+                    projectile_velocity = { x = 110, y = 0 },
+                    repeat_frequency = 3,
                     projectile_duration = 4,
-                    hit_percentage_damage = 10,
+                    hit_percentage_damage = 8,
                     friendly = false
                 }
             }
         },
 
+        -- Tank in the south jungle
         {
             group = "enemies",
             components = {
-                transform = { position = { x = 680, y = 415 }, scale = { x = 1.0, y = 1.0 }, rotation = 0.0 },
+                transform = { position = { x = 760, y = 720 }, scale = { x = 1.0, y = 1.0 }, rotation = 0.0 },
                 rigidbody = { velocity = { x = 0, y = 0.0 } },
                 sprite = { texture_asset_id = "tank-texture", width = 32, height = 32, z_index = 2 },
                 boxcollider = { width = 32, height = 32 },
                 health = { health_percentage = 100 },
                 projectile_emitter = {
-                    projectile_velocity = { x = 140, y = 0 },
-                    repeat_frequency = 2,
+                    projectile_velocity = { x = 110, y = 0 },
+                    repeat_frequency = 3,
                     projectile_duration = 4,
-                    hit_percentage_damage = 10,
-                    friendly = false
-                }
-            }
-        },
-
-        -- Tiger tank patrolling the south jungle
-        {
-            group = "enemies",
-            components = {
-                transform = { position = { x = 800, y = 740 }, scale = { x = 1.0, y = 1.0 }, rotation = 0.0 },
-                rigidbody = { velocity = { x = 80, y = 0.0 } },
-                sprite = { texture_asset_id = "tiger-texture", width = 32, height = 32, z_index = 2 },
-                boxcollider = { width = 32, height = 32 },
-                health = { health_percentage = 100 },
-                projectile_emitter = {
-                    projectile_velocity = { x = 140, y = 0 },
-                    repeat_frequency = 2,
-                    projectile_duration = 4,
-                    hit_percentage_damage = 10,
-                    friendly = false
-                },
-                patrol = { min_x = 640, max_x = 940, min_y = 740, max_y = 740 }
-            }
-        },
-
-        {
-            group = "enemies",
-            components = {
-                transform = { position = { x = 1400, y = 790 }, scale = { x = 1.0, y = 1.0 }, rotation = 0.0 },
-                rigidbody = { velocity = { x = 0, y = 0.0 } },
-                sprite = { texture_asset_id = "tank-texture", width = 32, height = 32, z_index = 2 },
-                boxcollider = { width = 32, height = 32 },
-                health = { health_percentage = 100 },
-                projectile_emitter = {
-                    projectile_velocity = { x = 140, y = 0 },
-                    repeat_frequency = 2,
-                    projectile_duration = 4,
-                    hit_percentage_damage = 10,
-                    friendly = false
-                }
-            }
-        },
-
-        {
-            group = "enemies",
-            components = {
-                transform = { position = { x = 1380, y = 500 }, scale = { x = 1.0, y = 1.0 }, rotation = 0.0 },
-                rigidbody = { velocity = { x = 0, y = 0.0 } },
-                sprite = { texture_asset_id = "tank-texture", width = 32, height = 32, z_index = 2 },
-                boxcollider = { width = 32, height = 32 },
-                health = { health_percentage = 100 },
-                projectile_emitter = {
-                    projectile_velocity = { x = 140, y = 0 },
-                    repeat_frequency = 2,
-                    projectile_duration = 4,
-                    hit_percentage_damage = 10,
+                    hit_percentage_damage = 8,
                     friendly = false
                 }
             }

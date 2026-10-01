@@ -3,6 +3,7 @@
 
 #include "../Logger/Logger.h"
 #include <memory>
+#include <functional>
 #include "Event.h"
 #include <map>
 #include <typeindex>

@@ -81,8 +81,9 @@ class MovementSystem: public System {
                     transform.position.y > Game::mapHeight + cullingMargin
                 );
 
-                // Kill all entities that move outside the map boundaries
-                if (isEntityOutsideMap && !entity.HasTag("player")) {
+                // Only projectiles are removed when they leave the map.
+                // Enemies are never deleted this way, otherwise they would count as "destroyed".
+                if (isEntityOutsideMap && entity.BelongsToGroup("projectiles")) {
                     entity.Kill();
                 }
             }
